@@ -1,63 +1,98 @@
-import { useEffect, useState } from "react";
+import React from "react";
+import { getPieceFile } from "~/utils/getPieceFile";
+import { getSquare } from "~/utils/getSquare";
 
-function getPieceFile(letter: string) {
-  if (letter === ".") return null;
+type Move = { from: string; to: string };
 
-  const map: any = {
-    P: "PP.svg",
-    N: "NN.svg",
-    B: "BB.svg",
-    R: "RR.svg",
-    Q: "QQ.svg",
-    K: "KK.svg",
-    p: "p.svg",
-    n: "n.svg",
-    b: "b.svg",
-    r: "r.svg",
-    q: "q.svg",
-    k: "k.svg"
-  };
-
-  return map[letter];
+interface BoardProps {
+  game: string;
+  color: "w" | "b";
+  setGame: (fen: string) => void;
+  boardPieces: string[];
+  setBoardPieces: (bp: string[]) => void;
+  turn: "w" | "b";
+  setTurn: (t: "w" | "b") => void;
+  move: Move;
+  setMove: (m: Move) => void;
 }
 
-const Board = ({ board }: any) => {
-  const [boardPieces, setBoardPieces] = useState<string[]>([]);
+const Board: React.FC<BoardProps> = ({
+  game,
+  color,
+  setGame,
+  boardPieces,
+  setBoardPieces,
+  turn,
+  setTurn,
+  move,
+  setMove,
+}) => {
+  async function handleClick(index: number) {
+    if (turn !== color) return;
 
-  useEffect(() => {
-    function toDisplay(board: string): string {
-      let res = board.split(" ")[0].split("/").join("");
-      let boardres = "";
+    const square = getSquare(index, color);
 
-      for (let i = 0; i < res.length; i++) {
-        if (!isNaN(Number(res[i]))) {
-          boardres += ".".repeat(Number(res[i])); 
-        } else {
-          boardres += res[i]; 
-        }
-      }
-
-      return boardres; 
+    if (move.from === "") {
+      if (boardPieces[index] === ".") return;
+      setMove({ from: square, to: "" });
+      return;
     }
 
-    const boardString = toDisplay(board);
-    setBoardPieces(boardString.split("")); 
-  }, [board]);
+    if (move.from === square) {
+      setMove({ from: "", to: "" });
+      return;
+    }
+
+    const newMove = { from: move.from, to: square };
+    setMove(newMove);
+
+    try {
+      const res = await apiCall(newMove);
+      if (res != null) {
+        setGame(res);
+      }
+    } catch (err) {
+      console.error("move API failed", err);
+    } finally {
+      setMove({ from: "", to: "" });
+    }
+  }
+
+  async function apiCall(move: Move) {
+    console.log("called", move);
+    return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  }
+
+  function isSelected(i: number) {
+    const sq = getSquare(i, color);
+    return move.from === sq;
+  }
 
   return (
-    <div className="grid grid-cols-8  rounded overflow-hidden">
+    <div className="grid grid-cols-8 rounded overflow-hidden">
       {boardPieces.map((item, i) => (
         <div
           key={i}
-          className="w-19 h-19"
+          onClick={() => handleClick(i)}
+          className="w-19 h-19 relative select-none"
           style={{
             backgroundColor:
-              ((Math.floor(i / 8) + (i % 8)) % 2 === 0 ? "#D2B48C" : "#8B4513"),
+              (Math.floor(i / 8) + (i % 8)) % 2 === 0 ? "#D2B48C" : "#8B4513",
+            width: 64,
+            height: 64,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxSizing: "border-box",
+            border: isSelected(i) ? "3px solid #00FF00" : undefined,
           }}
         >
           {item !== "." && (
-            <img src={`/${getPieceFile(item)}`} className="" 
-              style={{ cursor : "grab" }} />
+            <img
+              src={`/${getPieceFile(item)}`}
+              alt={item}
+              style={{ cursor: "pointer", width: "80%", height: "80%" }}
+            />
           )}
         </div>
       ))}
