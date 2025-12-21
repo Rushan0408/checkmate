@@ -37,10 +37,16 @@ public class AppState {
         GameRoom gameRoom = new GameRoom(waitingPlayer, player);
         activeGames.put(gameRoom.getGameRoomId(), gameRoom);
 
-        // 🔥 Notify PLAYER 1 via WebSocket
+        // Broadcast a single match-found event. The payload contains the gameRoomId
+        // and both players' usernames so the frontend can decide if the message
+        // is relevant to the current client.
         messagingTemplate.convertAndSend(
-                "/user/queue",
-                new MatchFoundMessage(gameRoom.getGameRoomId(), "WHITE"));
+                "/topic/matches",
+                new MatchFoundMessage(
+                        gameRoom.getGameRoomId(),
+                        waitingPlayer.getUsername(),
+                        player.getUsername()
+                ));
 
         return Optional.of(gameRoom);
     }

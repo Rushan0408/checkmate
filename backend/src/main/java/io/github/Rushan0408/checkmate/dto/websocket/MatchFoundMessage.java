@@ -4,11 +4,13 @@ public class MatchFoundMessage {
 
     private String type = "MATCH_FOUND";
     private String gameRoomId;
-    private String color;
+    private String whitePlayer;
+    private String blackPlayer;
 
-    public MatchFoundMessage(String gameRoomId, String color) {
+    public MatchFoundMessage(String gameRoomId, String whitePlayer, String blackPlayer) {
         this.gameRoomId = gameRoomId;
-        this.color = color;
+        this.whitePlayer = whitePlayer;
+        this.blackPlayer = blackPlayer;
     }
 
     public String getType() {
@@ -19,7 +21,11 @@ public class MatchFoundMessage {
         return gameRoomId;
     }
 
-    public String getColor() {
-        return color;
+    public String getWhitePlayer() {
+        return whitePlayer;
+    }
+
+    public String getBlackPlayer() {
+        return blackPlayer;
     }
 }

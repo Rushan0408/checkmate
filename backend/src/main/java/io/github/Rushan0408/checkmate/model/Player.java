@@ -1,28 +1,33 @@
 package io.github.Rushan0408.checkmate.model;
 
-import java.util.UUID;
+import java.util.Collection;
+import java.util.List;
 
-public class Player {
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-    private String playerId;
+import lombok.*;
+
+@Document(collection = "players")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Player implements UserDetails {
+
+    @Id
+    private String id;   
+
+    @Indexed(unique = true)
     private String username;
-    private String sessionId;
+    private String password;
 
-    public Player(String username, String sessionId) {
-        this.playerId = UUID.randomUUID().toString();
-        this.username = username;
-        this.sessionId = sessionId;
-    }
-
-    public String getPlayerId() {
-        return playerId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getSessionId() {
-        return sessionId;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
     }
 }

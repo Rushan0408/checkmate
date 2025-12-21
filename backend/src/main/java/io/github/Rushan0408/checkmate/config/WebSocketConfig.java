@@ -19,7 +19,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/user");
-        registry.setUserDestinationPrefix("/user");
+        // Use a simple broker with a public topic prefix that clients can subscribe to.
+        // Matchmaking notifications will be published to `/topic/matches`.
+        registry.enableSimpleBroker("/topic");
+        // If in the future you add application destinations (e.g. @MessageMapping),
+        // you can route them under this prefix.
+        registry.setApplicationDestinationPrefixes("/app");
     }
 }
