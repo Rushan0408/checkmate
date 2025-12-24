@@ -6,4 +6,7 @@ import lombok.Data;
 public class LoginRequestDto {
     private String username;
     private String password;
+    public String toString() {
+        return username + "  " + password;
+    }
 }

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import Header from "~/components/Header";
 
 const home = () => {
   const navigate = useNavigate();
@@ -6,11 +7,14 @@ const home = () => {
     navigate('/play')
   }
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen">
-      <div className="text-9xl mb-4 ">CheckMate</div>
-      <button className="text-3xl cursor-pointer bg-green-400 px-10 py-1 rounded hover:bg-green-500"
-        onClick={handleClick}
-      >Play</button>
+    <div>
+      <Header/>
+      <div className="flex flex-col justify-center items-center min-h-screen text-white">
+        <div className="text-7xl mb-4 ">CheckMate</div>
+        <button className="text-2xl cursor-pointer bg-green-600 px-9 py-1 rounded hover:bg-green-700"
+          onClick={handleClick}
+        >Play</button>
+      </div>
     </div>
   )
 }

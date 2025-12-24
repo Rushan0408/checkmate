@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import Board from "~/components/Board";
 import GameDetails from "~/components/GameDetails";
+import { useAuthStore } from "~/store/auth-store";
 
 const Play: React.FC = () => {
+  const navigate = useNavigate();
+  const {checkJwt} = useAuthStore();
   const [game, setGame] = useState(
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
   );
@@ -12,6 +16,7 @@ const Play: React.FC = () => {
     from: "",
     to: "",
   });
+
 
   useEffect(() => {
     function toDisplay(gameFen: string): string {
@@ -35,8 +40,12 @@ const Play: React.FC = () => {
     setTurn(t);
   }, [game]);
 
+  function handleStartClick() {
+    
+  }
+
   return (
-    <div className="flex flex-row items-center m-10 gap-20 justify-center">
+    <div className="flex flex-row items-center m-10 gap-20 justify-center border">
       <Board
         game={game}
         color="w"
@@ -48,10 +57,17 @@ const Play: React.FC = () => {
         move={move}
         setMove={setMove}
       />
-      <GameDetails
-       turn={turn} 
-       move={move}
-       game={game} />
+      <div className="border flex flex-col items-center gap-4 ">
+        <GameDetails 
+          turn={turn} 
+          move={move}
+          game={game} />
+
+        <button className="text-2xl cursor-pointer bg-green-600 px-9 py-1 rounded hover:bg-green-700"
+          onClick={handleStartClick}
+        >Start</button>
+      </div>
+
     </div>
   );
 };
