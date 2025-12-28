@@ -1,4 +1,4 @@
-package io.github.Rushan0408.checkmate.config;
+package io.github.Rushan0408.checkmate.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +30,4 @@ public class WebSecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
-    
-
 }

@@ -6,7 +6,8 @@ import { useAuthStore } from "~/store/auth-store";
 
 const Play: React.FC = () => {
   const navigate = useNavigate();
-  const {checkJwt} = useAuthStore();
+  const [isLoggedIn , setIsLoggedIn] = useState(true);
+  const { checkJwt } = useAuthStore();
   const [game, setGame] = useState(
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
   );
@@ -41,11 +42,15 @@ const Play: React.FC = () => {
   }, [game]);
 
   function handleStartClick() {
+    if ( !checkJwt() ) {
+      setIsLoggedIn(false);
+      return;
+    }  
     
   }
 
   return (
-    <div className="flex flex-row items-center m-10 gap-20 justify-center border">
+    <div className="flex flex-row items-center m-10 gap-20 justify-center">
       <Board
         game={game}
         color="w"
@@ -57,15 +62,20 @@ const Play: React.FC = () => {
         move={move}
         setMove={setMove}
       />
-      <div className="border flex flex-col items-center gap-4 ">
-        <GameDetails 
-          turn={turn} 
+      <div className=" flex flex-col items-center">
+        <GameDetails
+          turn={turn}
           move={move}
           game={game} />
 
-        <button className="text-2xl cursor-pointer bg-green-600 px-9 py-1 rounded hover:bg-green-700"
+        <button className="text-2xl cursor-pointer bg-green-600 px-9 py-1 rounded hover:bg-green-700 mb-1"
           onClick={handleStartClick}
         >Start</button>
+
+        { !isLoggedIn &&
+          <p className="text-xs text-red-400 text-center">
+            You must login to play
+          </p>}
       </div>
 
     </div>

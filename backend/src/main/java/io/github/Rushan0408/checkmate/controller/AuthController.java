@@ -32,6 +32,4 @@ public class AuthController {
         System.out.println(" signup controller \n");
         return ResponseEntity.ok(authService.signup(signupRequestDto));
     }
-    // /me
-    // /logout
 }

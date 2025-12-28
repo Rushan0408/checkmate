@@ -44,6 +44,7 @@ public class AuthUtil {
         return claims.getSubject();
     }
 
+    //unused so far
     public void addJwtCookie(HttpServletResponse response, String jwt) {
         ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
                 .httpOnly(true)
