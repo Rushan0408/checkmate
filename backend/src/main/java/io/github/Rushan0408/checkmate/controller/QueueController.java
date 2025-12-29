@@ -10,7 +10,6 @@ import io.github.Rushan0408.checkmate.model.Player;
 @RestController
 @RequestMapping("/queue")
 public class QueueController {
-
     @PostMapping
     public String joinQueue(Authentication auth) {
         Player player = (Player) auth.getPrincipal();

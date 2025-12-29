@@ -1,6 +1,7 @@
 package io.github.Rushan0408.checkmate.model;
 
 import com.github.bhlangonijr.chesslib.Board;
+import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.move.Move;
 
 public class Room {
@@ -32,8 +33,11 @@ public class Room {
 
         gameState.setFen(board.getFen());
         gameState.setTurnPlayerId(
-                board.getSideToMove().isWhite() ? whitePlayerId : blackPlayerId
+            board.getSideToMove() == Side.WHITE
+                ? whitePlayerId
+                : blackPlayerId
         );
+
 
         if (board.isMated()) gameState.setStatus(GameStatus.CHECKMATE);
         else if (board.isStaleMate()) gameState.setStatus(GameStatus.STALEMATE);
