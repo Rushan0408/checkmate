@@ -3,20 +3,59 @@ import { useNavigate } from "react-router";
 import Board from "~/components/Board";
 import GameDetails from "~/components/GameDetails";
 import { useAuthStore } from "~/store/auth-store";
+import { useRef } from "react";
+
+
 
 const Play: React.FC = () => {
+
+  const clientRef = useRef<any>(null);
+
   const navigate = useNavigate();
-  const [isLoggedIn , setIsLoggedIn] = useState(true);
-  const { checkJwt } = useAuthStore();
-  const [game, setGame] = useState(
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const { checkJwt , fetchJwt } = useAuthStore();
+  const [game, setGame] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   const [boardPieces, setBoardPieces] = useState<string[]>([]);
   const [turn, setTurn] = useState<"w" | "b">("w");
-  const [move, setMove] = useState<{ from: string; to: string }>({
-    from: "",
-    to: "",
-  });
+  const [move, setMove] = useState<{ from: string; to: string }>({ from: "", to: "", });
+
+  useEffect(() => {
+  let client: any;
+
+  (async () => {
+    const { Client } = await import("@stomp/stompjs");
+
+    client = new Client({
+      brokerURL: "ws://localhost:8080/ws",
+      connectHeaders: {
+        Authorization: `Bearer ${fetchJwt()}`
+      },
+      reconnectDelay: 5000,
+
+      onConnect: () => {
+        console.log("✅ Connected");
+
+        // ✅ subscribe ONCE
+        client.subscribe("/user/queue/matchmaking", (frame : any) => {
+          const payload = JSON.parse(frame.body);
+          console.log("🎯 Match found:", payload);
+
+          // example: navigate to game room
+          // navigate(`/game/${payload.roomId}`);
+        });
+      },
+
+      onWebSocketError: e => console.error("WS error", e),
+      onStompError: f => console.error("STOMP error", f),
+    });
+
+    client.activate();
+    clientRef.current = client;
+  })();
+
+  return () => client?.deactivate();
+}, []);
+
 
 
   useEffect(() => {
@@ -42,12 +81,24 @@ const Play: React.FC = () => {
   }, [game]);
 
   function handleStartClick() {
-    if ( !checkJwt() ) {
-      setIsLoggedIn(false);
-      return;
-    }  
-    
+  if (!checkJwt()) {
+    setIsLoggedIn(false);
+    return;
   }
+
+  if (!clientRef.current?.connected) {
+    console.warn("WS not connected yet");
+    return;
+  }
+
+  clientRef.current.publish({
+    destination: "/app/matchmaking",
+    body: ""   // ✅ no body
+  });
+
+  console.log("📤 Sent matchmaking request");
+}
+
 
   return (
     <div className="flex flex-row items-center m-10 gap-20 justify-center">
@@ -72,7 +123,7 @@ const Play: React.FC = () => {
           onClick={handleStartClick}
         >Start</button>
 
-        { !isLoggedIn &&
+        {!isLoggedIn &&
           <p className="text-xs text-red-400 text-center">
             You must login to play
           </p>}

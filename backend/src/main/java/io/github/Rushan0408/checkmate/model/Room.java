@@ -4,6 +4,9 @@ import com.github.bhlangonijr.chesslib.Board;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.move.Move;
 
+import lombok.Data;
+
+@Data
 public class Room {
 
     private final String id;

@@ -1,6 +1,7 @@
 package io.github.Rushan0408.checkmate.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+
 import io.github.Rushan0408.checkmate.model.Player;
 
 import java.util.Optional;

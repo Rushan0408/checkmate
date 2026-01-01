@@ -19,16 +19,12 @@ public class GameRegistry {
             matchmakingQueue.add(playerId);
             return null;
         }
-
         String opponentId = matchmakingQueue.poll();
         String roomId = UUID.randomUUID().toString();
-
         Room room = new Room(roomId, opponentId, playerId);
         rooms.put(roomId, room);
-
         playerToRoom.put(playerId, roomId);
         playerToRoom.put(opponentId, roomId);
-
         return room;
     }
 
