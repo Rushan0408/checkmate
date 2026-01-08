@@ -10,9 +10,9 @@ import java.util.concurrent.*;
 @Service
 public class GameRegistry {
 
-    private final Map<String, Room> rooms = new ConcurrentHashMap<>();
-    private final Map<String, String> playerToRoom = new ConcurrentHashMap<>();
-    private final Queue<String> matchmakingQueue = new ConcurrentLinkedQueue<>();
+    public final Map<String, Room> rooms = new ConcurrentHashMap<>();
+    public final Map<String, String> playerToRoom = new ConcurrentHashMap<>();
+    public final Queue<String> matchmakingQueue = new ConcurrentLinkedQueue<>();
 
     public synchronized Room queuePlayer(String playerId) {
         if (matchmakingQueue.isEmpty()) {

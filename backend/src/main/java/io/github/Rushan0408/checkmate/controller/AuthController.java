@@ -23,13 +23,13 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
-        System.out.println("called \n");
+        // System.out.println("called \n");
         return ResponseEntity.ok(authService.login(loginRequestDto));
     }
 
     @PostMapping("/signup")
     public ResponseEntity<SignupResponseDto> signup(@RequestBody LoginRequestDto signupRequestDto) {
-        System.out.println(" signup controller \n");
+        // System.out.println(" signup controller \n");
         return ResponseEntity.ok(authService.signup(signupRequestDto));
     }
 }
