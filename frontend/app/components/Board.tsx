@@ -5,18 +5,20 @@ import { getSquare } from "~/utils/getSquare";
 type Move = { from: string; to: string };
 
 interface BoardProps {
+  clientRef: any;
   game: string;
-  color: "w" | "b";
+  color: "white" | "black";
   setGame: (fen: string) => void;
   boardPieces: string[];
   setBoardPieces: (bp: string[]) => void;
-  turn: "w" | "b";
-  setTurn: (t: "w" | "b") => void;
+  turn: "white" | "black";
+  setTurn: (t: "white" | "black") => void;
   move: Move;
   setMove: (m: Move) => void;
 }
 
 const Board: React.FC<BoardProps> = ({
+  clientRef,
   game,
   color,
   setGame,
@@ -27,30 +29,25 @@ const Board: React.FC<BoardProps> = ({
   move,
   setMove,
 }) => {
+
+
+  // handles the player's mouse moves
   async function handleClick(index: number) {
     if (turn !== color) return;
-
     const square = getSquare(index, color);
-
     if (move.from === "") {
       if (boardPieces[index] === ".") return;
       setMove({ from: square, to: "" });
       return;
     }
-
     if (move.from === square) {
       setMove({ from: "", to: "" });
       return;
     }
-
     const newMove = { from: move.from, to: square };
     setMove(newMove);
-
     try {
       const res = await apiCall(newMove);
-      if (res != null) {
-        setGame(res);
-      }
     } catch (err) {
       console.error("move API failed", err);
     } finally {
@@ -58,9 +55,14 @@ const Board: React.FC<BoardProps> = ({
     }
   }
 
+
+  // publishes the new move from client to server on "/app/game"
   async function apiCall(move: Move) {
     console.log("called", move);
-    return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    clientRef.current.publish({
+      destination: "/app/game",
+      body: JSON.stringify(move)
+    });
   }
 
   function isSelected(i: number) {
@@ -84,7 +86,7 @@ const Board: React.FC<BoardProps> = ({
             alignItems: "center",
             justifyContent: "center",
             boxSizing: "border-box",
-            border: isSelected(i) ? "3px solid #00FF00" : undefined,
+            border: isSelected(i) ? "1px solid #00FF00" : undefined,
           }}
         >
           {item !== "." && (

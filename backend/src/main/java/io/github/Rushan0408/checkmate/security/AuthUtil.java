@@ -51,7 +51,7 @@ public class AuthUtil {
                 .secure(false)     // true in production (HTTPS)
                 .sameSite("Lax")   // Strict breaks login sometimes
                 .path("/")
-                .maxAge(60 * 60)   // 1 hour
+                .maxAge(60 * 60 * 60)   // 60 hour
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
