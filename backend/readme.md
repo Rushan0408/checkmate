@@ -2,6 +2,11 @@ We CAN use @SubsribeMapping for matchmaking instead of @Matchmaking since this r
 
 Why did i had to use custom HandShakeInterceptor?
 
+Change the principal from player username to player id
+
+
+----------------------------------------------------------------------------
+
 ToDo - 
 1.  
 "/app/game":

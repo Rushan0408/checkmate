@@ -49,6 +49,9 @@ public class Room {
 
     public String getId() { return id; }
     public GameState getGameState() { return gameState; }
+    public String[] getPlayers() {
+        return new String[]{whitePlayerId,blackPlayerId};
+    }
 }
 
 

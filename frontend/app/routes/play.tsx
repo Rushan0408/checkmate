@@ -18,7 +18,7 @@ const Play: React.FC = () => {
   const [move, setMove] = useState<{ from: string; to: string }>({ from: "", to: "", });
 
 
-  // on page refresh, makes a websocket connection with server then subscribes to "/user/queue/matchmaking" 
+  // on page refresh, makes a websocket connection with server then subscribes to "/user/queue/matchmaking"
   useEffect(() => {
     let client: any;
     (async () => {
@@ -52,27 +52,30 @@ const Play: React.FC = () => {
 
   // converts fen string to Board whenever Game(fen string) updates
   useEffect(() => {
-    const temp = game.split(" ")[1] === "w" ? "white" : "black";
-    setTurn(temp);
-    function toDisplay(gameFen: string): string {
-      const raw = gameFen.split(" ")[0].split("/").join("");
-      let boardRes = "";
-      for (let i = 0; i < raw.length; i++) {
-        const ch = raw[i];
-        if (!isNaN(Number(ch))) {
-          boardRes += ".".repeat(Number(ch));
-        } else {
-          boardRes += ch;
-        }
-      }
-      return boardRes;
-    }
-    const boardString = toDisplay(game);
-    console.log(boardString.split(""));
-    setBoardPieces(boardString.split(""));
     const t = game.split(" ")[1] === "w" ? "white" : "black";
     setTurn(t);
-  }, [game]);
+
+    function toDisplay(gameFen: string): string {
+      let placement = gameFen.split(" ")[0];
+
+      if (color === "black") {
+        placement = placement.split("").reverse().join("");
+      }
+
+      let boardRes = "";
+      for (let i = 0; i < placement.length; i++) {
+        const ch = placement[i];
+        if (!isNaN(Number(ch))) boardRes += ".".repeat(Number(ch));
+        else if (ch !== "/") boardRes += ch;
+      }
+
+      return boardRes;
+    }
+
+    setBoardPieces(toDisplay(game).split(""));
+  }, [game, color]);
+
+
 
 
   // subcribes to game enpoint when matchmaking found 
@@ -80,7 +83,8 @@ const Play: React.FC = () => {
   function subscribeToGame() {
     clientRef.current.subscribe("/user/queue/game", (frame : any) => {
       const payload = JSON.parse(frame.body);
-      if ( payload.newMove == "true" ) {
+      console.log(payload);
+      if ( payload.newMove == true ) {
         setGame(payload.fen);
       }
     })
@@ -120,21 +124,23 @@ const Play: React.FC = () => {
         move={move}
         setMove={setMove}
       />
+
       <div className=" flex flex-col items-center">
-        <GameDetails
+      <GameDetails
           color={color}
           turn={turn}
           move={move}
-          game={game} />
+          game={game} 
+      />        
 
-        <button className="text-2xl cursor-pointer bg-green-600 px-9 py-1 rounded hover:bg-green-700 mb-1"
-          onClick={handleStartClick}
-        >Start</button>
+      <button className="text-2xl cursor-pointer bg-green-600 px-9 py-1 rounded hover:bg-green-700 mb-1"
+        onClick={handleStartClick}
+      >Start</button>
 
-        {!isLoggedIn &&
-          <p className="text-xs text-red-400 text-center">
-            You must login to play
-          </p>}
+      {!isLoggedIn &&
+        <p className="text-xs text-red-400 text-center">
+          You must login to play
+        </p> }
       </div>
     </div>
   );
