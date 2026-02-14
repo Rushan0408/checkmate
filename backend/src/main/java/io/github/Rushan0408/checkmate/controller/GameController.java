@@ -18,7 +18,7 @@ public class GameController {
 
     @MessageMapping("/game")
     public void handleMove(MoveDto move, Principal principal) {
-        System.out.println("\n"+move+"\n");
+        // System.out.println("\n"+move+"\n");
         if (principal == null) {
             throw new MessagingException("Unauthenticated WebSocket message");
         }

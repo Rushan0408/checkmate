@@ -27,7 +27,7 @@ public class MatchmakingController {
         if (principal == null) {
             throw new MessagingException("Unauthenticated WebSocket message");
         }
-        System.out.println("\n\n" + principal.getName() + "\n\n");    
+        // System.out.println("\n\n" + principal.getName() + "\n\n");    
         matchmakingservice.processMatchmaking(principal.getName());
     }
 

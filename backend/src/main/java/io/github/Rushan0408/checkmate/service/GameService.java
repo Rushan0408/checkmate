@@ -10,6 +10,7 @@ import io.github.Rushan0408.checkmate.model.Room;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import com.github.bhlangonijr.chesslib.Piece;
 import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
 
@@ -31,10 +32,25 @@ public class GameService {
         String playerId = player.getId();
         Room room = gameRegistry.getRoomByPlayer(playerId);
 
-        Move chessMove = new Move(
-            Square.fromValue(move.from().toUpperCase()),
-            Square.fromValue(move.to().toUpperCase())
-        );
+        Move chessMove;
+
+        Square from = Square.fromValue(move.from().toUpperCase());
+        Square to   = Square.fromValue(move.to().toUpperCase());
+
+        if (move.promotion() == null) {
+            chessMove = new Move(from, to);
+        } else {
+            boolean isWhite = room.isWhitePlayer(playerId);
+            Piece promotion = switch (move.promotion().toLowerCase()) {
+                case "q" -> isWhite ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN;
+                case "r" -> isWhite ? Piece.WHITE_ROOK  : Piece.BLACK_ROOK;
+                case "b" -> isWhite ? Piece.WHITE_BISHOP: Piece.BLACK_BISHOP;
+                case "n" -> isWhite ? Piece.WHITE_KNIGHT: Piece.BLACK_KNIGHT;
+                default -> throw new IllegalArgumentException("Invalid promotion");
+            };
+            chessMove = new Move(from, to, promotion);
+        }
+
 
         room.makeMove( playerId , chessMove );
 

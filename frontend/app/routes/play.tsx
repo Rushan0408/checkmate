@@ -76,8 +76,6 @@ const Play: React.FC = () => {
   }, [game, color]);
 
 
-
-
   // subcribes to game enpoint when matchmaking found 
   // set game from the server message
   function subscribeToGame() {

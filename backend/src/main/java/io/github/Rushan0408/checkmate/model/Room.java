@@ -52,6 +52,10 @@ public class Room {
     public String[] getPlayers() {
         return new String[]{whitePlayerId,blackPlayerId};
     }
+    public boolean isWhitePlayer( String id ) {
+        if ( id == whitePlayerId ) return true;
+        return false;
+    }
 }
 
 
