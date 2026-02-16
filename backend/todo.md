@@ -6,7 +6,7 @@ Why did i had to use custom HandShakeInterceptor?
 
 ----------------------------------------------------------------------------
 
-TODOs :
+TODOs (Backend) :
 
 
 Low Priority:
@@ -19,14 +19,16 @@ Low Priority:
 ----------------------------------------------------------------------------
 
 High Priority:
-1. Promotion Move Handling 
-2. Implement Draw and Resign options
-3. Add player game history details
-4. add players win loss draw match played and other details 
-5. player auto rejoin game after disconnect/refresh
-6. game state persistence
-7. reconnect match logic
-8. Spectator mode
+~~Promotion Move Handling~~
+~~show possible moves~~
+1. Implement Draw and Resign options
+2. Add player game history details
+3. add players win loss draw match played and other details 
+4. player auto rejoin game after disconnect/refresh
+5. game state persistence
+6. reconnect match logic
+7. Spectator mode Avoid database fetch on each move(change principal)
+
 
 
 

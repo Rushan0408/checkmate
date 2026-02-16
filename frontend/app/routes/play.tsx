@@ -5,6 +5,8 @@ import GameDetails from "~/components/GameDetails";
 import { useAuthStore } from "~/store/auth-store";
 import { useRef } from "react";
 
+type PossibleMove = { to: string };
+
 const Play: React.FC = () => {
 
   const clientRef = useRef<any>(null);
@@ -16,6 +18,7 @@ const Play: React.FC = () => {
   const [color, setColor] = useState<"white" | "black">("white");
   const [turn,setTurn] = useState<"white" | "black">("white");
   const [move, setMove] = useState<{ from: string; to: string }>({ from: "", to: "", });
+  const [possibleMoves, setPossibleMoves] = useState<PossibleMove[]>([]);
 
 
   // on page refresh, makes a websocket connection with server then subscribes to "/user/queue/matchmaking"
@@ -36,7 +39,8 @@ const Play: React.FC = () => {
             console.log("🎯 Match found:", payload);
             if ( payload.message == "Match Found" ) {
               setColor(payload.startingColor);
-              subscribeToGame();
+              subscribeToGameMoves();
+              subscribeToGamePossibleMoves();
             } 
           });
         },
@@ -78,16 +82,31 @@ const Play: React.FC = () => {
 
   // subcribes to game enpoint when matchmaking found 
   // set game from the server message
-  function subscribeToGame() {
-    clientRef.current.subscribe("/user/queue/game", (frame : any) => {
+  function subscribeToGameMoves() {
+    clientRef.current.subscribe("/user/queue/game/move", (frame : any) => {
       const payload = JSON.parse(frame.body);
       console.log(payload);
       if ( payload.newMove == true ) {
         setGame(payload.fen);
+        // Clear possible moves when a move is made
+        setPossibleMoves([]);
       }
     })
   }
 
+  function subscribeToGamePossibleMoves(){
+    clientRef.current.subscribe("/user/queue/game/possibleMoves", (frame : any) => {
+      const payload = JSON.parse(frame.body);
+      console.log("📍 Possible moves:", payload);
+      // Ensure payload is an array of objects with 'to' property
+      if (Array.isArray(payload)) {
+        setPossibleMoves(payload);
+      } else if (payload && typeof payload === 'object') {
+        // Handle if server returns an object instead of array
+        setPossibleMoves(Array.isArray(payload.moves) ? payload.moves : []);
+      }
+    })
+  }
 
   // handles the Start Matchmaking button
   // when button is clicked an empty body is sent to "/app/matchmaking"
@@ -121,6 +140,8 @@ const Play: React.FC = () => {
         setTurn={setTurn}
         move={move}
         setMove={setMove}
+        possibleMoves={possibleMoves}
+        setPossibleMoves={setPossibleMoves}
       />
 
       <div className=" flex flex-col items-center">

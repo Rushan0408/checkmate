@@ -1,10 +1,12 @@
 package io.github.Rushan0408.checkmate.service;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 import io.github.Rushan0408.checkmate.repository.PlayerRepository;
 import io.github.Rushan0408.checkmate.dto.websocket.MoveDto;
+import io.github.Rushan0408.checkmate.dto.websocket.PossibleMoveDto;
 import io.github.Rushan0408.checkmate.model.Player;
 import io.github.Rushan0408.checkmate.model.Room;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -51,7 +53,6 @@ public class GameService {
             chessMove = new Move(from, to, promotion);
         }
 
-
         room.makeMove( playerId , chessMove );
 
         String fen = room.getGameState().getFen();
@@ -65,7 +66,7 @@ public class GameService {
 
         template.convertAndSendToUser(
             whitePlayerUsername,
-            "/queue/game",
+            "/queue/game/move",
             Map.of(
                 "newMove", true,
                 "fen", fen
@@ -73,11 +74,28 @@ public class GameService {
         );
         template.convertAndSendToUser(
             blackPlayerUsername,
-            "/queue/game",
+            "/queue/game/move",
             Map.of(
                 "newMove", true,
                 "fen", fen
             )
+        );
+    }
+
+    public void findAllPossibleMoves(MoveDto move , Principal principal) {
+        String playerUsername = principal.getName();
+        Player player = playerRepository.findByUsername(playerUsername).orElseThrow(() -> new IllegalArgumentException("Player not found"));
+        String playerId = player.getId();
+        Room room = gameRegistry.getRoomByPlayer(playerId);
+
+        Square from = Square.fromValue(move.from().toUpperCase());
+        
+        List<PossibleMoveDto> possibleMoveDtos =  room.findAllPossibleMoves(from);
+
+        template.convertAndSendToUser(
+            playerUsername,
+            "/queue/game/possibleMoves",
+            possibleMoveDtos
         );
     }
 }

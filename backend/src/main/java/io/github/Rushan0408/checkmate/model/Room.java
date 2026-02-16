@@ -1,9 +1,13 @@
 package io.github.Rushan0408.checkmate.model;
 
+import java.util.List;
+
 import com.github.bhlangonijr.chesslib.Board;
 import com.github.bhlangonijr.chesslib.Side;
+import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
 
+import io.github.Rushan0408.checkmate.dto.websocket.PossibleMoveDto;
 import lombok.Data;
 
 @Data
@@ -48,14 +52,26 @@ public class Room {
     }
 
     public String getId() { return id; }
+
     public GameState getGameState() { return gameState; }
+
     public String[] getPlayers() {
         return new String[]{whitePlayerId,blackPlayerId};
     }
+
     public boolean isWhitePlayer( String id ) {
         if ( id == whitePlayerId ) return true;
         return false;
     }
+
+    public List<PossibleMoveDto> findAllPossibleMoves(Square from) {
+        return board.legalMoves().stream()
+            .filter(m -> m.getFrom() == from)
+            .map(m -> new PossibleMoveDto(
+                m.getTo().value().toLowerCase()
+            ))
+            .toList();
+        }
 }
 
 
