@@ -18,7 +18,7 @@ public class GameController {
 
     @MessageMapping("/game/move")
     public void handleMove(MoveDto move, Principal principal) {
-        System.out.println("\n"+move+"\n");
+        // System.out.println("\n"+move+"\n");
         if (principal == null) {
             throw new MessagingException("Unauthenticated WebSocket message");
         }
@@ -27,7 +27,7 @@ public class GameController {
 
     @MessageMapping("/game/possibleMoves")
     public void findAllPossibleMoves(MoveDto move, Principal principal ) {
-        System.out.println("\n called Possible Move " + move + "\n");
+        // System.out.println("\n called Possible Move " + move + "\n");
         gameService.findAllPossibleMoves(move,principal);
     }
 }

@@ -56,8 +56,6 @@ public class GameService {
         room.makeMove( playerId , chessMove );
 
         String fen = room.getGameState().getFen();
-        System.out.println(fen);
-
         Player whitePlayer = playerRepository.findById(room.getWhitePlayerId()).orElseThrow(() -> new IllegalArgumentException("Player not found"));
         String whitePlayerUsername = whitePlayer.getUsername();
 
@@ -83,6 +81,7 @@ public class GameService {
     }
 
     public void findAllPossibleMoves(MoveDto move , Principal principal) {
+        System.out.println("Principal : " + principal);
         String playerUsername = principal.getName();
         Player player = playerRepository.findByUsername(playerUsername).orElseThrow(() -> new IllegalArgumentException("Player not found"));
         String playerId = player.getId();
