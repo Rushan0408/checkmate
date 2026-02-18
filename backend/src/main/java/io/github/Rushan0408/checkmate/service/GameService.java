@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.Rushan0408.checkmate.repository.PlayerRepository;
+import io.github.Rushan0408.checkmate.security.CustomPrincipal;
 import io.github.Rushan0408.checkmate.dto.websocket.MoveDto;
 import io.github.Rushan0408.checkmate.dto.websocket.PossibleMoveDto;
 import io.github.Rushan0408.checkmate.model.Player;
 import io.github.Rushan0408.checkmate.model.Room;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import com.github.bhlangonijr.chesslib.Piece;
@@ -29,9 +31,10 @@ public class GameService {
 
     public void makeMove(MoveDto move, Principal principal) {
 
-        String playerUsername = principal.getName(); 
-        Player player = playerRepository.findByUsername(playerUsername).orElseThrow(() -> new IllegalArgumentException("Player not found"));
-        String playerId = player.getId();
+        UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) principal;
+        CustomPrincipal customPrincipal = (CustomPrincipal) auth.getPrincipal();
+        
+        String playerId = customPrincipal.getUserId();
         Room room = gameRegistry.getRoomByPlayer(playerId);
 
         Move chessMove;
@@ -81,10 +84,10 @@ public class GameService {
     }
 
     public void findAllPossibleMoves(MoveDto move , Principal principal) {
-        System.out.println("Principal : " + principal);
-        String playerUsername = principal.getName();
-        Player player = playerRepository.findByUsername(playerUsername).orElseThrow(() -> new IllegalArgumentException("Player not found"));
-        String playerId = player.getId();
+        UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) principal;
+        CustomPrincipal customPrincipal = (CustomPrincipal) auth.getPrincipal();
+        String playerUsername = customPrincipal.getUsername();
+        String playerId = customPrincipal.getUserId();
         Room room = gameRegistry.getRoomByPlayer(playerId);
 
         Square from = Square.fromValue(move.from().toUpperCase());

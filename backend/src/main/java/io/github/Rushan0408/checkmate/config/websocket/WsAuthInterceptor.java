@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Component;
 
 import io.github.Rushan0408.checkmate.security.AuthUtil;
+import io.github.Rushan0408.checkmate.security.CustomPrincipal;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -24,25 +25,28 @@ public class WsAuthInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
 
-        StompHeaderAccessor acc =
-            MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        StompHeaderAccessor acc = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (acc == null) return message;
 
         if (StompCommand.CONNECT.equals(acc.getCommand())) {
             String authHeader = acc.getFirstNativeHeader("Authorization");
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                // System.out.println("\n\n" + "call1" + "\n\n");
                 try {
-                    String userName = authUtil.getUsernameFromToken(authHeader.substring(7));
-                    // System.out.println("\n\n" + userName + "\n\n");
-                    UsernamePasswordAuthenticationToken obj = new UsernamePasswordAuthenticationToken(
-                        userName,
-                        null,
-                        List.of()
+                    String token = authHeader.substring(7);
+
+                    String userId = authUtil.getUserIdFromToken(token);
+                    String username = authUtil.getUsernameClaim(token);
+
+                    CustomPrincipal principal = new CustomPrincipal(userId, username);
+
+                    acc.setUser(
+                            new UsernamePasswordAuthenticationToken(
+                                    principal,
+                                    null,
+                                    List.of()
+                            )
                     );
-                    // System.out.println("\n\n" + obj + "\n\n");
-                    acc.setUser(obj);
                 } catch (Exception ignored) {
                     // allow unauthenticated connect
                 }

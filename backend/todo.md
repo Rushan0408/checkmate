@@ -10,10 +10,10 @@ TODOs (Backend) :
 
 
 Low Priority:
-1. Change the principal from player username to player id - this prevents unncessary database calls
-2. add a chat feature
-3. Basic rate limiting
-4. Leaderboard with ranking logic
+~~Change the principal from player username to player id - this prevents unncessary database calls~~
+1. add a chat feature
+2. Basic rate limiting
+3. Leaderboard with ranking logic
 
 
 ----------------------------------------------------------------------------
@@ -27,8 +27,7 @@ High Priority:
 4. player auto rejoin game after disconnect/refresh
 5. game state persistence
 6. reconnect match logic
-7. Spectator mode Avoid database fetch on each move(change principal)
-
+7. Spectator mode 
 
 
 
