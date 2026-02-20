@@ -6,6 +6,7 @@ import java.util.Map;
 
 import io.github.Rushan0408.checkmate.repository.PlayerRepository;
 import io.github.Rushan0408.checkmate.security.CustomPrincipal;
+import io.github.Rushan0408.checkmate.dto.websocket.MatchRejoin;
 import io.github.Rushan0408.checkmate.dto.websocket.MoveDto;
 import io.github.Rushan0408.checkmate.dto.websocket.PossibleMoveDto;
 import io.github.Rushan0408.checkmate.model.Player;
@@ -99,6 +100,36 @@ public class GameService {
             "/queue/game/possibleMoves",
             possibleMoveDtos
         );
+    }
+
+    public void reconnectGame(Principal principal) {
+        UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) principal;
+        CustomPrincipal customPrincipal = (CustomPrincipal) auth.getPrincipal();
+        String playerUsername  = customPrincipal.getUsername();
+        String playerId = customPrincipal.getUserId();
+        Room room = gameRegistry.getRoomByPlayer(playerId);
+
+        if (room == null) return;
+
+        String color = playerId.equals(room.getWhitePlayerId()) ? "white" : "black";
+
+        String fen = room.getGameState().getFen();
+
+        template.convertAndSendToUser(
+            playerUsername,
+            "/queue/matchmaking",
+            new MatchRejoin("Match Rejoin",color)
+        );
+
+        template.convertAndSendToUser(
+            playerUsername,
+            "/queue/game/move",
+            Map.of(
+                "newMove", true,
+                "fen", fen
+            )
+        );
+
     }
 }
 

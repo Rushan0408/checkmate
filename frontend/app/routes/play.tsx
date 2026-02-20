@@ -34,15 +34,10 @@ const Play: React.FC = () => {
         reconnectDelay: 5000,
         onConnect: () => {
           console.log("✅ Connected");
-          client.subscribe("/user/queue/matchmaking", (frame : any) => {
-            const payload = JSON.parse(frame.body);
-            console.log("🎯 Match found:", payload);
-            if ( payload.message == "Match Found" ) {
-              setColor(payload.startingColor);
+              subscribeToMatchmaking();
               subscribeToGameMoves();
               subscribeToGamePossibleMoves();
-            } 
-          });
+              reconnect();
         },
         onWebSocketError: e => console.error("WS error", e),
         onStompError: f => console.error("STOMP error", f),
@@ -50,9 +45,24 @@ const Play: React.FC = () => {
       client.activate();
       clientRef.current = client;
     })();
-    return () => client?.deactivate();
+    return () => clientRef.current?.deactivate();
   }, []);
 
+  //check if player already in a game
+  async function reconnect() {
+    if (!checkJwt()) {
+      setIsLoggedIn(false);
+      navigate('/auth?loginPage=true');
+      return;
+    }
+    await fetch("http://localhost:8080/reconnect", {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${fetchJwt()}`  
+      },
+    });
+  }
 
   // converts fen string to Board whenever Game(fen string) updates
   useEffect(() => {
@@ -108,6 +118,16 @@ const Play: React.FC = () => {
     })
   }
 
+  function subscribeToMatchmaking(){
+    clientRef.current.subscribe("/user/queue/matchmaking", (frame : any) => {
+      const payload = JSON.parse(frame.body);
+      console.log("🎯 Match found:", payload);
+      if ( payload.message == "Match Found" || payload.message == "Match Rejoin" ) {
+        setColor(payload.startingColor);
+      } 
+    });
+  }
+
   // handles the Start Matchmaking button
   // when button is clicked an empty body is sent to "/app/matchmaking"
   function handleStartClick() {
@@ -125,7 +145,6 @@ const Play: React.FC = () => {
     });
     console.log("📤 Sent matchmaking request");
   }
-
 
   return (
     <div className="flex flex-row items-center m-10 gap-20 justify-center">

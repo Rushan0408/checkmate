@@ -2,36 +2,38 @@ We CAN use @SubsribeMapping for matchmaking instead of @Matchmaking since this r
 
 Why did i had to use custom HandShakeInterceptor?
 
-
-
 ----------------------------------------------------------------------------
 
 TODOs (Backend) :
 
-
 Low Priority:
-~~Change the principal from player username to player id - this prevents unncessary database calls~~
+
 1. add a chat feature
 2. Basic rate limiting
 3. Leaderboard with ranking logic
 
-
 ----------------------------------------------------------------------------
 
 High Priority:
-~~Promotion Move Handling~~
-~~show possible moves~~
+
 1. Implement Draw and Resign options
 2. Add player game history details
 3. add players win loss draw match played and other details 
-4. player auto rejoin game after disconnect/refresh
-5. game state persistence
-6. reconnect match logic
-7. Spectator mode 
-
-
+4. game state persistence
+5. Spectator mode 
+6. check auth controller (and checkJWT for frontend)
 
 ----------------------------------------------------------------------------
 
 Working on it right now:
+
 1. Promotion Move Handling 
+
+----------------------------------------------------------------------------
+
+Completed:
+
+~~Promotion Move Handling~~
+~~show possible moves~~
+~~player auto rejoin game after disconnect/refresh~~
+~~Change the principal from player username to player id - this prevents unncessary database calls~~

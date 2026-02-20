@@ -19,8 +19,7 @@ public class MatchmakingService {
 
     public void processMatchmaking(String playerUsername) {
 
-        Player player = playerRepository.findByUsername(playerUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Player not found"));
+        Player player = playerRepository.findByUsername(playerUsername).orElseThrow(() -> new IllegalArgumentException("Player not found"));
 
         Room room = gameRegistry.queuePlayer(player.getId());
 
