@@ -2,6 +2,7 @@ package io.github.Rushan0408.checkmate.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+
 
 import java.io.IOException;
 import java.util.List;
@@ -35,38 +37,35 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         try {
 
-            final String header = request.getHeader("Authorization");
+            Cookie[] cookies = request.getCookies();
 
-            if (header == null || !header.startsWith("Bearer ")) {
-                filterChain.doFilter(request, response);
-                return;
-            }
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("jwt".equals(cookie.getName())) {
+                        String token = cookie.getValue();
+                        String userId = authUtil.getUserIdFromToken(token);
+                        String username = authUtil.getUsernameClaim(token);
+                        List<String> roles = authUtil.getRolesFromToken(token);
 
-            String token = header.substring(7);
+                        List<GrantedAuthority> authorities = roles.stream()
+                                    .map(SimpleGrantedAuthority::new)
+                                    .collect(Collectors.toList());
 
-            String userId = authUtil.getUserIdFromToken(token);
-            String username = authUtil.getUsernameClaim(token);
-            List<String> roles = authUtil.getRolesFromToken(token);
+                        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            List<GrantedAuthority> authorities =
-                    roles.stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+                            CustomPrincipal principal = new CustomPrincipal(userId, username);
 
-            if (userId != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null) {
+                            UsernamePasswordAuthenticationToken auth =
+                                    new UsernamePasswordAuthenticationToken(
+                                            principal,
+                                            null,
+                                            authorities 
+                                    );
 
-                CustomPrincipal principal =
-                        new CustomPrincipal(userId, username);
-
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                principal,
-                                null,
-                                authorities 
-                        );
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                            SecurityContextHolder.getContext().setAuthentication(auth);
+                        }
+                    }
+                }
             }
 
             filterChain.doFilter(request, response);
@@ -79,7 +78,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/ws");
+        String uri = request.getRequestURI();
+        return uri.startsWith("/ws") || 
+            uri.startsWith("/auth/login") || 
+            uri.startsWith("/auth/signup");
     }
 
 }

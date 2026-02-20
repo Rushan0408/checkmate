@@ -12,7 +12,7 @@ const Play: React.FC = () => {
   const clientRef = useRef<any>(null);
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const {checkJwt, fetchJwt } = useAuthStore();
+  const {checkJwt } = useAuthStore();
   const [game, setGame] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   const [boardPieces, setBoardPieces] = useState<string[]>([]);
   const [color, setColor] = useState<"white" | "black">("white");
@@ -23,27 +23,48 @@ const Play: React.FC = () => {
 
   // on page refresh, makes a websocket connection with server then subscribes to "/user/queue/matchmaking"
   useEffect(() => {
-    let client: any;
     (async () => {
       const { Client } = await import("@stomp/stompjs");
-      client = new Client({
-        brokerURL: "ws://localhost:8080/ws",
+      const client = new Client({
+        brokerURL: "ws://localhost:5173/ws",
         connectHeaders: {
-          Authorization: `Bearer ${fetchJwt()}`
+          jwt: document.cookie
+            .split('; ')
+            .find(r => r.startsWith('jwt='))
+            ?.split('=')[1] ?? ''
         },
         reconnectDelay: 5000,
         onConnect: () => {
           console.log("✅ Connected");
-              subscribeToMatchmaking();
-              subscribeToGameMoves();
-              subscribeToGamePossibleMoves();
-              reconnect();
+          client.subscribe("/user/queue/matchmaking", (frame) => {
+            const payload = JSON.parse(frame.body);
+            console.log("Match Found , Starting color : " , payload.startingColor);
+            if (payload.message === "Match Found" || payload.message === "Match Rejoin") {
+              setColor(payload.startingColor);
+            }
+          });
+          client.subscribe("/user/queue/game/move", (frame) => {
+            const payload = JSON.parse(frame.body);
+            if (payload.newMove === true) {
+              setGame(payload.fen);
+              setPossibleMoves([]);
+            }
+          });
+          client.subscribe("/user/queue/game/possibleMoves", (frame) => {
+            const payload = JSON.parse(frame.body);
+            if (Array.isArray(payload)) {
+              setPossibleMoves(payload);
+            } else if (payload?.moves) {
+              setPossibleMoves(payload.moves);
+            }
+          });
+          reconnect();
         },
         onWebSocketError: e => console.error("WS error", e),
         onStompError: f => console.error("STOMP error", f),
       });
-      client.activate();
       clientRef.current = client;
+      client.activate();
     })();
     return () => clientRef.current?.deactivate();
   }, []);
@@ -55,12 +76,9 @@ const Play: React.FC = () => {
       navigate('/auth?loginPage=true');
       return;
     }
-    await fetch("http://localhost:8080/reconnect", {
+    await fetch("/api/reconnect", {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${fetchJwt()}`  
-      },
+      credentials : "include",
     });
   }
 
@@ -89,50 +107,13 @@ const Play: React.FC = () => {
     setBoardPieces(toDisplay(game).split(""));
   }, [game, color]);
 
-
-  // subcribes to game enpoint when matchmaking found 
-  // set game from the server message
-  function subscribeToGameMoves() {
-    clientRef.current.subscribe("/user/queue/game/move", (frame : any) => {
-      const payload = JSON.parse(frame.body);
-      console.log(payload);
-      if ( payload.newMove == true ) {
-        setGame(payload.fen);
-        // Clear possible moves when a move is made
-        setPossibleMoves([]);
-      }
-    })
-  }
-
-  function subscribeToGamePossibleMoves(){
-    clientRef.current.subscribe("/user/queue/game/possibleMoves", (frame : any) => {
-      const payload = JSON.parse(frame.body);
-      console.log("📍 Possible moves:", payload);
-      // Ensure payload is an array of objects with 'to' property
-      if (Array.isArray(payload)) {
-        setPossibleMoves(payload);
-      } else if (payload && typeof payload === 'object') {
-        // Handle if server returns an object instead of array
-        setPossibleMoves(Array.isArray(payload.moves) ? payload.moves : []);
-      }
-    })
-  }
-
-  function subscribeToMatchmaking(){
-    clientRef.current.subscribe("/user/queue/matchmaking", (frame : any) => {
-      const payload = JSON.parse(frame.body);
-      console.log("🎯 Match found:", payload);
-      if ( payload.message == "Match Found" || payload.message == "Match Rejoin" ) {
-        setColor(payload.startingColor);
-      } 
-    });
-  }
-
   // handles the Start Matchmaking button
   // when button is clicked an empty body is sent to "/app/matchmaking"
-  function handleStartClick() {
-    if (!checkJwt()) {
+  async function handleStartClick() {
+    const isValid = await checkJwt();
+    if (!isValid) {
       setIsLoggedIn(false);
+      navigate('/auth?loginPage=true');
       return;
     }
     if (!clientRef.current?.connected) {
@@ -141,9 +122,8 @@ const Play: React.FC = () => {
     }
     clientRef.current.publish({
       destination: "/app/matchmaking",
-      body: ""   
+      body: ""
     });
-    console.log("📤 Sent matchmaking request");
   }
 
   return (

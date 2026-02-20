@@ -30,30 +30,19 @@ public class WsAuthInterceptor implements ChannelInterceptor {
         if (acc == null) return message;
 
         if (StompCommand.CONNECT.equals(acc.getCommand())) {
-            String authHeader = acc.getFirstNativeHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = acc.getFirstNativeHeader("jwt");
+            System.out.println("🔑 JWT header: " + token);
+            if (token != null && !token.isEmpty()) {
                 try {
-                    String token = authHeader.substring(7);
-
                     String userId = authUtil.getUserIdFromToken(token);
                     String username = authUtil.getUsernameClaim(token);
-
                     CustomPrincipal principal = new CustomPrincipal(userId, username);
-
                     acc.setUser(
-                            new UsernamePasswordAuthenticationToken(
-                                    principal,
-                                    null,
-                                    List.of()
-                            )
+                        new UsernamePasswordAuthenticationToken(principal, null, List.of())
                     );
-                } catch (Exception ignored) {
-                    // allow unauthenticated connect
-                }
+                } catch (Exception ignored) {}
             }
         }
-
-        // ✅ THIS IS REQUIRED
         return MessageBuilder.createMessage(
             message.getPayload(),
             acc.getMessageHeaders()

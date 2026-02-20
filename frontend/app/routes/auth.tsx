@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { useAuthStore } from '~/store/auth-store';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const loginPage = searchParams.get('loginPage');
 
-  const { setJwt } = useAuthStore();
   const navigate = useNavigate();
 
   const [login, setLogin] = useState(false);
@@ -24,16 +22,13 @@ const Auth = () => {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', 
         body: JSON.stringify({ username, password }),
       });
 
       if (!res.ok) throw new Error(await res.text());
 
-      const data = await res.json();
-      if (data.jwt) {
-        setJwt(data.jwt);
-        navigate('/');
-      }
+      navigate('/');
     } catch (err) {
       console.error('Auth error:', err);
     }
@@ -41,7 +36,7 @@ const Auth = () => {
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    sendAuthRequest('http://localhost:8080/auth/login');
+    sendAuthRequest('/api/auth/login');
   };
 
   const handleSignUpSubmit = (e: React.FormEvent) => {
@@ -53,7 +48,7 @@ const Auth = () => {
     }
 
     setPasswordError('');
-    sendAuthRequest('http://localhost:8080/auth/signup');
+    sendAuthRequest('/api/auth/signup');
     setLogin(true);
   };
 

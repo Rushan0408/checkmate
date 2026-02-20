@@ -1,27 +1,26 @@
 import { create } from "zustand";
 
 type AuthState = {
-  checkJwt: () => boolean;
-  setJwt: (value: string) => void; 
-  fetchJwt : () => string | null;
-  removeJwt : () => void;
+  checkJwt: () => Promise<boolean>;
+  removeJwt: () => Promise<void>;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-
-  checkJwt : () => {
-    if ( window.localStorage.getItem("jwt") ) return true;
-    else return false;
+export const useAuthStore = create<AuthState>(() => ({
+  checkJwt: async () => {
+    try {
+      const res = await fetch("/api/auth/validate", {
+        method: "GET",
+        credentials: "include", 
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
   },
-
-  setJwt : (value) => {
-    window.localStorage.setItem("jwt" , value)
-  },
-
-  fetchJwt : () => {
-    return window.localStorage.getItem("jwt");
-  },
-  removeJwt() {
-    window.localStorage.removeItem('jwt');
+  removeJwt: async () => {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
   },
 }));

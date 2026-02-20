@@ -2,6 +2,11 @@ package io.github.Rushan0408.checkmate.security;
 
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpHeaders;
+import java.time.Duration;
+
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -10,9 +15,11 @@ import org.springframework.stereotype.Service;
 
 import io.github.Rushan0408.checkmate.dto.auth.LoginRequestDto;
 import io.github.Rushan0408.checkmate.dto.auth.LoginResponseDto;
+import io.github.Rushan0408.checkmate.dto.auth.LogoutResponseDto;
 import io.github.Rushan0408.checkmate.dto.auth.SignupResponseDto;
 import io.github.Rushan0408.checkmate.model.Player;
 import io.github.Rushan0408.checkmate.repository.PlayerRepository;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -23,17 +30,36 @@ public class AuthService {
     private final PlayerRepository playerRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+    public LoginResponseDto login(
+            LoginRequestDto loginRequestDto,
+            HttpServletResponse response
+    ) {
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                        loginRequestDto.getUsername(),
+                        loginRequestDto.getPassword()
+                )
         );
 
         Player player = (Player) authentication.getPrincipal();
 
-        String token = authUtil.generateAccessToken(player);
+        String jwt = authUtil.generateAccessToken(player);
 
-        return new LoginResponseDto(token, player.getId());
+        ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
+                .httpOnly(false)
+                .secure(false)        
+                .path("/")
+                .maxAge(Duration.ofDays(1))
+                .sameSite("Lax")      
+                .build();     
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        LoginResponseDto responseDto =
+                new LoginResponseDto(player.getId());
+
+        return responseDto;
     }
 
     public SignupResponseDto signup(LoginRequestDto signupRequestDto) {
@@ -48,5 +74,20 @@ public class AuthService {
         );
 
         return new SignupResponseDto(player.getId(), player.getUsername());
+    }
+
+    public LogoutResponseDto logout( HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(true)          
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        LogoutResponseDto responseDto = new LogoutResponseDto("Logout Success !");
+
+        return responseDto;
     }
 }
